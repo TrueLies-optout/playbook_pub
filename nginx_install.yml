@@ -1,0 +1,36 @@
+---
+- name: NGINX Playbook
+  hosts: webserver
+  become: yes
+  tasks:
+    - name: EPEL repository telepítése 
+      yum:
+        name: epel-release
+        state: present
+
+    - name: NGINX telepítése
+      ansible.builtin.package:
+        name: nginx
+        state: present
+      notify: Restart Nginx
+    
+       
+    - name: Saját html file másolása
+      copy:
+        src: /shared/nt_index.html
+        dest: /usr/share/nginx/html/index.html
+        owner: nginx
+        group: nginx
+        mode: '0644'
+
+    - name: NGINX indítása és automatikus indulás beállítása
+      systemd:
+        name: nginx
+        state: started
+        enabled: yes
+
+  handlers:
+    - name: Restart Nginx
+      ansible.builtin.service:
+        name: nginx
+        state: restarted
